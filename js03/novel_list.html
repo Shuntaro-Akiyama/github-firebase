@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>小説一覧</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .novel-list {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .novel-item {
+            background-color: #fff;
+            margin-bottom: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .novel-title {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+        }
+        .novel-author {
+            font-style: italic;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="novel-list">
+        <h1>小説一覧</h1>
+        <div id="novels"></div>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+
+    <script>
+        // Firebaseの設定
+        const firebaseConfig = {
+            apiKey: "AIzaSyCy04YFxCGxj47Gx359g2k5xzrlyKjOKzs",
+            authDomain: "kadai-f10fd.firebaseapp.com",
+            projectId: "kadai-f10fd",
+            storageBucket: "kadai-f10fd.appspot.com",
+            messagingSenderId: "662321462953",
+            appId: "1:662321462953:web:427d01e97d54fac3c1f3b8"
+        };
+
+        // Firebaseの初期化
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // 小説一覧を取得して表示
+        function displayNovels() {
+            db.collection("novels").get().then((querySnapshot) => {
+                const novelsDiv = document.getElementById('novels');
+                querySnapshot.forEach((doc) => {
+                    const novel = doc.data();
+                    const novelElement = document.createElement('div');
+                    novelElement.className = 'novel-item';
+                    novelElement.innerHTML = `
+                        <div class="novel-title">
+                            <a href="novel_detail.html?id=${doc.id}">${novel.title}</a>
+                        </div>
+                        <div class="novel-author">作者: ${novel.author || '匿名'}</div>
+                    `;
+                    novelsDiv.appendChild(novelElement);
+                });
+            });
+        }
+
+        // ページ読み込み時に小説一覧を表示
+        window.onload = displayNovels;
+    </script>
+</body>
+</html>

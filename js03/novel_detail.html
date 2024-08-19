@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>小説詳細</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .novel-detail {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .novel-title {
+            font-size: 1.5em;
+            margin-bottom: 10px;
+        }
+        .novel-author {
+            font-style: italic;
+            color: #666;
+            margin-bottom: 20px;
+        }
+        .novel-content {
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="novel-detail">
+        <h1 id="title"></h1>
+        <div id="author"></div>
+        <div id="content"></div>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+
+    <script>
+        // Firebaseの設定
+        const firebaseConfig = {
+            apiKey: "AIzaSyCy04YFxCGxj47Gx359g2k5xzrlyKjOKzs",
+            authDomain: "kadai-f10fd.firebaseapp.com",
+            projectId: "kadai-f10fd",
+            storageBucket: "kadai-f10fd.appspot.com",
+            messagingSenderId: "662321462953",
+            appId: "1:662321462953:web:427d01e97d54fac3c1f3b8"
+        };
+
+        // Firebaseの初期化
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // URLからノベルIDを取得
+        const urlParams = new URLSearchParams(window.location.search);
+        const novelId = urlParams.get('id');
+
+        // 小説の詳細を取得して表示
+        function displayNovelDetail() {
+            db.collection("novels").doc(novelId).get().then((doc) => {
+                if (doc.exists) {
+                    const novel = doc.data();
+                    document.getElementById('title').textContent = novel.title;
+                    document.getElementById('author').textContent = `作者: ${novel.author || '匿名'}`;
+                    document.getElementById('content').textContent = novel.content;
+                } else {
+                    console.log("No such document!");
+                }
+            }).catch((error) => {
+                console.log("Error getting document:", error);
+            });
+        }
+
+        // ページ読み込み時に小説詳細を表示
+        window.onload = displayNovelDetail;
+    </script>
+</body>
+</html>

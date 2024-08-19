@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>小説投稿サイト トップページ</title>
+    <style>
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+}
+header {
+    background-color: #333;
+    color: #fff;
+    padding: 10px 0;
+    text-align: center;
+}
+nav {
+    display: flex;
+    justify-content: center;
+    background-color: #444;
+    padding: 10px 0;
+}
+nav a {
+    color: #fff;
+    margin: 0 15px;
+    text-decoration: none;
+}
+main {
+    display: flex;
+    justify-content: space-around;
+    padding: 20px;
+}
+section {
+    background-color: #fff;
+    padding: 15px;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    width: 45%;
+}
+h2 {
+    border-bottom: 2px solid #ddd;
+    padding-bottom: 10px;
+}
+ul {
+    list-style: none;
+    padding: 0;
+}
+ul li {
+    padding: 5px 0;
+}
+    </style>
+    <!-- Firebase App (コアライブラリ) の読み込み -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+    <!-- Firebase Authentication の読み込み -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+</head>
+<body>
+    <header>
+        <h1>小説家に〇ろう</h1>
+    </header>
+    <nav>
+        <a href="ここにURLを記載してください">閲覧履歴</a>
+        <a href="ここにURLを記載してください">お気に入り</a>
+        <!-- ログイン状態に応じて変更されるボタン -->
+        <a id="authButton" href="./kadai_authentication.html">ログイン/新規登録</a>
+    </nav>
+    <main>
+        <section>
+            <h2>閲覧数の多い作品ランキング</h2>
+            <ul>
+                <li>作品1</li>
+                <li>作品2</li>
+                <li>作品3</li>
+                <li>作品4</li>
+                <li>作品5</li>
+            </ul>
+        </section>
+        <section>
+            <h2>お知らせ</h2>
+            <ul>
+                <li>お知らせ1</li>
+                <li>お知らせ2</li>
+                <li>お知らせ3</li>
+            </ul>
+        </section>
+    </main>
+
+    <script>
+        // Firebaseの設定
+        const firebaseConfig = {
+            apiKey: "AIzaSyCy04YFxCGxj47Gx359g2k5xzrlyKjOKzs",
+            authDomain: "kadai-f10fd.firebaseapp.com",
+            projectId: "kadai-f10fd",
+            storageBucket: "kadai-f10fd.appspot.com",
+            messagingSenderId: "662321462953",
+            appId: "1:662321462953:web:427d01e97d54fac3c1f3b8"
+        };
+
+        // Firebaseの初期化
+        firebase.initializeApp(firebaseConfig);
+
+        function updateAuthButton(user) {
+            const authButton = document.getElementById('authButton');
+            if (user) {
+                // ユーザーがログインしている場合
+                authButton.textContent = 'アカウント';
+                authButton.href = './kadai_account.html';
+            } else {
+                // ユーザーがログインしていない場合
+                authButton.textContent = 'ログイン/新規登録';
+                authButton.href = './kadai_authentication.html';
+            }
+        }
+
+        // Firebase Authの初期化を待ってから認証状態を確認
+        firebase.auth().onAuthStateChanged(function(user) {
+            updateAuthButton(user);
+            // ローカルストレージのログインフラグをクリア
+            localStorage.removeItem('justLoggedIn');
+        });
+
+        // ページロード時に即座にローカルストレージをチェック
+        window.onload = function() {
+            if (localStorage.getItem('justLoggedIn') === 'true') {
+                updateAuthButton({ exists: true }); // ダミーユーザーオブジェクト
+            }
+        };
+    </script>
+</body>
+</html>

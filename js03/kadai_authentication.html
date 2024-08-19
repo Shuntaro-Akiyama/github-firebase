@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>ユーザー認証</title>
+    <!-- Firebase SDKを追加 -->
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCy04YFxCGxj47Gx359g2k5xzrlyKjOKzs",
+            authDomain: "kadai-f10fd.firebaseapp.com",
+            projectId: "kadai-f10fd",
+            storageBucket: "kadai-f10fd.appspot.com",
+            messagingSenderId: "662321462953",
+            appId: "1:662321462953:web:427d01e97d54fac3c1f3b8"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        // 新規登録
+        window.register = function() {
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+            createUserWithEmailAndPassword(auth, email, password)
+                .then((userCredential) => {
+                    alert('登録成功');
+                })
+                .catch((error) => {
+                    alert('登録失敗: ' + error.message);
+                });
+        }
+
+        // ログイン
+        window.login = function() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            signInWithEmailAndPassword(auth, email, password)
+                .then((userCredential) => {
+                    // ログイン成功フラグをセット
+                    localStorage.setItem('justLoggedIn', 'true');
+                    // トップページに遷移
+                    window.location.href = "./kadai_top.html";
+                })
+                .catch((error) => {
+                    alert('ログイン失敗: ' + error.message);
+                });
+        }
+
+        // ログアウト
+        window.logout = function() {
+            signOut(auth)
+                .then(() => {
+                    alert('ログアウト成功');
+                })
+                .catch((error) => {
+                    alert('ログアウト失敗: ' + error.message);
+                });
+        }
+    </script>
+</head>
+<body>
+    <h1>ユーザー認証</h1>
+    <div id="register">
+        <h2>新規登録</h2>
+        <input type="email" id="registerEmail" placeholder="メールアドレス">
+        <input type="password" id="registerPassword" placeholder="パスワード">
+        <button onclick="register()">登録</button>
+    </div>
+    <div id="login">
+        <h2>ログイン</h2>
+        <input type="email" id="loginEmail" placeholder="メールアドレス">
+        <input type="password" id="loginPassword" placeholder="パスワード">
+        <button onclick="login()">ログイン</button>
+    </div>
+    <button onclick="logout()">ログアウト</button>
+</body>
+</html>

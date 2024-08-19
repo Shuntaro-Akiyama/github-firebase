@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>アカウント情報</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+        }
+        .info-item {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input[type="text"], input[type="email"], input[type="password"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .password-reset-link {
+            display: block;
+            margin-top: 10px;
+            font-size: 0.9em;
+            color: #0066cc;
+            text-decoration: none;
+        }
+        .password-reset-link:hover {
+            text-decoration: underline;
+        }
+        .back-to-top {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background-color: #333;
+            color: white;
+            padding: 10px 15px;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+        .back-to-top:hover {
+            background-color: #555;
+        }
+    </style>
+    <!-- Firebase App (コアライブラリ) の読み込み -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+    <!-- Firebase Authentication の読み込み -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+</head>
+<body>
+    <a href="./kadai_top.html" class="back-to-top">トップページへ戻る</a>
+    <div class="container">
+        <h1>アカウント情報</h1>
+        <div id="userInfo">
+            <div class="info-item">
+                <label for="email">メールアドレス:</label>
+                <input type="email" id="email" readonly>
+            </div>
+            <div class="info-item">
+                <label for="displayName">表示名:</label>
+                <input type="text" id="displayName">
+            </div>
+            <button onclick="updateProfile()">プロフィールを更新</button>
+        </div>
+        <div class="info-item">
+            <h2>パスワード変更</h2>
+            <input type="password" id="currentPassword" placeholder="現在のパスワード">
+            <input type="password" id="newPassword" placeholder="新しいパスワード">
+            <input type="password" id="confirmNewPassword" placeholder="新しいパスワード（確認）">
+            <button onclick="changePassword()">パスワードを変更</button>
+            <a href="#" class="password-reset-link" onclick="sendPasswordResetEmail()">パスワードを忘れた場合</a>
+        </div>
+        <button onclick="logout()">ログアウト</button>
+    </div>
+
+    <script>
+        // Firebaseの設定
+        const firebaseConfig = {
+            apiKey: "AIzaSyCy04YFxCGxj47Gx359g2k5xzrlyKjOKzs",
+            authDomain: "kadai-f10fd.firebaseapp.com",
+            projectId: "kadai-f10fd",
+            storageBucket: "kadai-f10fd.appspot.com",
+            messagingSenderId: "662321462953",
+            appId: "1:662321462953:web:427d01e97d54fac3c1f3b8"
+        };
+
+        // Firebaseの初期化
+        firebase.initializeApp(firebaseConfig);
+
+        // ユーザー情報を表示
+        firebase.auth().onAuthStateChanged(function(user) {
+            if (user) {
+                document.getElementById('email').value = user.email;
+                document.getElementById('displayName').value = user.displayName || '';
+            } else {
+                // ユーザーがログインしていない場合はログインページにリダイレクト
+                window.location.href = './kadai_authentication.html';
+            }
+        });
+
+        // プロフィール更新
+        function updateProfile() {
+            const user = firebase.auth().currentUser;
+            const newDisplayName = document.getElementById('displayName').value;
+
+            user.updateProfile({
+                displayName: newDisplayName
+            }).then(() => {
+                alert('プロフィールが更新されました');
+            }).catch((error) => {
+                alert('エラーが発生しました: ' + error.message);
+            });
+        }
+
+        // パスワード変更
+        function changePassword() {
+            const currentPassword = document.getElementById('currentPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmNewPassword = document.getElementById('confirmNewPassword').value;
+
+            if (newPassword !== confirmNewPassword) {
+                alert('新しいパスワードが一致しません。');
+                return;
+            }
+
+            const user = firebase.auth().currentUser;
+            const credential = firebase.auth.EmailAuthProvider.credential(
+                user.email, 
+                currentPassword
+            );
+
+            // 再認証
+            user.reauthenticateWithCredential(credential).then(() => {
+                // パスワード更新
+                return user.updatePassword(newPassword);
+            }).then(() => {
+                alert('パスワードが変更されました');
+                // 入力フィールドをクリア
+                document.getElementById('currentPassword').value = '';
+                document.getElementById('newPassword').value = '';
+                document.getElementById('confirmNewPassword').value = '';
+            }).catch((error) => {
+                alert('エラーが発生しました: ' + error.message);
+            });
+        }
+
+        // パスワードリセットメールの送信
+        function sendPasswordResetEmail() {
+            const user = firebase.auth().currentUser;
+            if (user) {
+                firebase.auth().sendPasswordResetEmail(user.email)
+                    .then(() => {
+                        alert('パスワードリセットのメールを送信しました。メールをご確認ください。');
+                    })
+                    .catch((error) => {
+                        alert('エラーが発生しました: ' + error.message);
+                    });
+            } else {
+                alert('ユーザー情報を取得できませんでした。再度ログインしてください。');
+            }
+        }
+
+        // ログアウト
+        function logout() {
+            firebase.auth().signOut().then(() => {
+                window.location.href = './kadai_top.html'; // トップページにリダイレクト
+            }).catch((error) => {
+                alert('ログアウトに失敗しました: ' + error.message);
+            });
+        }
+    </script>
+</body>
+</html>

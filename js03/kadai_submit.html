@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>小説投稿フォーム</title>
+    <style>
+        /* フォームのスタイルを設定 */
+        form {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <h1>小説投稿フォーム</h1>
+    <form id="novelForm">
+        <label for="novelTitle">タイトル</label>
+        <input type="text" id="novelTitle" name="novelTitle" placeholder="タイトルを入力してください" required>
+        
+        <label for="authorName">作者名</label>
+        <input type="text" id="authorName" name="authorName" placeholder="作者名を入力してください" required>
+        
+        <label for="novelContent">本文</label>
+        <textarea id="novelContent" name="novelContent" rows="10" placeholder="本文を入力してください" required></textarea>
+        
+        <button type="button" onclick="submitNovel()">投稿</button>
+    </form>
+
+    <script type="module">
+        // Firebaseの設定と初期化（Firebase SDKのインポートが必要）
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCy04YFxCGxj47Gx359g2k5xzrlyKjOKzs",
+            authDomain: "kadai-f10fd.firebaseapp.com",
+            projectId: "kadai-f10fd",
+            storageBucket: "kadai-f10fd.appspot.com",
+            messagingSenderId: "662321462953",
+            appId: "1:662321462953:web:427d01e97d54fac3c1f3b8"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // 小説を投稿する関数
+        window.submitNovel = async function() {
+            const title = document.getElementById('novelTitle').value;
+            const author = document.getElementById('authorName').value;
+            const content = document.getElementById('novelContent').value;
+            try {
+                const docRef = await addDoc(collection(db, "novels"), {
+                    title: title,
+                    author: author,
+                    content: content,
+                    createdAt: new Date()
+                });
+                alert('小説が投稿されました: ' + docRef.id);
+            } catch (e) {
+                alert('エラーが発生しました: ' + e);
+            }
+        }
+    </script>
+</body>
+</html>
