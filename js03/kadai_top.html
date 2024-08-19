@@ -4,57 +4,83 @@
     <meta charset="UTF-8">
     <title>小説投稿サイト トップページ</title>
     <style>
-body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 0;
-    background-color: #f4f4f4;
-}
-header {
-    background-color: #333;
-    color: #fff;
-    padding: 10px 0;
-    text-align: center;
-}
-nav {
-    display: flex;
-    justify-content: center;
-    background-color: #444;
-    padding: 10px 0;
-}
-nav a {
-    color: #fff;
-    margin: 0 15px;
-    text-decoration: none;
-}
-main {
-    display: flex;
-    justify-content: space-around;
-    padding: 20px;
-}
-section {
-    background-color: #fff;
-    padding: 15px;
-    border-radius: 5px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    width: 45%;
-}
-h2 {
-    border-bottom: 2px solid #ddd;
-    padding-bottom: 10px;
-}
-ul {
-    list-style: none;
-    padding: 0;
-}
-ul li {
-    padding: 5px 0;
-}
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        header {
+            background-color: #333;
+            color: #fff;
+            padding: 10px 0;
+            text-align: center;
+        }
+        nav {
+            display: flex;
+            justify-content: center;
+            background-color: #444;
+            padding: 10px 0;
+        }
+        nav a {
+            color: #fff;
+            margin: 0 15px;
+            text-decoration: none;
+        }
+        main {
+            display: flex;
+            justify-content: space-around;
+            padding: 20px;
+        }
+        section {
+            background-color: #fff;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 45%;
+        }
+        h2 {
+            border-bottom: 2px solid #ddd;
+            padding-bottom: 10px;
+        }
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+        ul li {
+            padding: 5px 0;
+        }
+    
+        /* 投稿ボタンのスタイル */
+        .post-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #4CAF50;
+            color: white;
+            padding: 15px 25px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transition: background-color 0.3s;
+        }
+        .post-button:hover {
+            background-color: #45a049;
+        }
     </style>
     <!-- Firebase App (コアライブラリ) の読み込み -->
     <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
     <!-- Firebase Authentication の読み込み -->
     <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+    <!-- Firebase Firestore の読み込み -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+</head>
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <!-- 既存のhead内容はそのまま -->
 </head>
 <body>
     <header>
@@ -68,13 +94,9 @@ ul li {
     </nav>
     <main>
         <section>
-            <h2>閲覧数の多い作品ランキング</h2>
-            <ul>
-                <li>作品1</li>
-                <li>作品2</li>
-                <li>作品3</li>
-                <li>作品4</li>
-                <li>作品5</li>
+            <h2>新着</h2>
+            <ul id="recentNovels">
+                <!-- ここに新着小説が動的に追加されます -->
             </ul>
         </section>
         <section>
@@ -86,6 +108,9 @@ ul li {
             </ul>
         </section>
     </main>
+
+    <!-- 投稿ボタン -->
+    <button id="postButton" class="post-button" style="display: none;">投稿する</button>
 
     <script>
         // Firebaseの設定
@@ -100,18 +125,46 @@ ul li {
 
         // Firebaseの初期化
         firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
 
         function updateAuthButton(user) {
             const authButton = document.getElementById('authButton');
+            const postButton = document.getElementById('postButton');
             if (user) {
                 // ユーザーがログインしている場合
                 authButton.textContent = 'アカウント';
                 authButton.href = './kadai_account.html';
+                postButton.style.display = 'block'; // 投稿ボタンを表示
             } else {
                 // ユーザーがログインしていない場合
                 authButton.textContent = 'ログイン/新規登録';
                 authButton.href = './kadai_authentication.html';
+                postButton.style.display = 'none'; // 投稿ボタンを非表示
             }
+        }
+
+        // 新着小説を取得して表示する関数
+        function displayRecentNovels() {
+            const recentNovelsElement = document.getElementById('recentNovels');
+            db.collection("novels")
+                .orderBy("createdAt", "desc")
+                .limit(5)
+                .get()
+                .then((querySnapshot) => {
+                    recentNovelsElement.innerHTML = ''; // リストをクリア
+                    querySnapshot.forEach((doc) => {
+                        const novel = doc.data();
+                        const li = document.createElement('li');
+                        li.innerHTML = `
+                            <strong>${novel.title}</strong> by ${novel.author}<br>
+                            ${novel.content.substring(0, 20)}...
+                        `;
+                        recentNovelsElement.appendChild(li);
+                    });
+                })
+                .catch((error) => {
+                    console.error("Error getting recent novels: ", error);
+                });
         }
 
         // Firebase Authの初期化を待ってから認証状態を確認
@@ -121,12 +174,18 @@ ul li {
             localStorage.removeItem('justLoggedIn');
         });
 
-        // ページロード時に即座にローカルストレージをチェック
+        // ページロード時の処理
         window.onload = function() {
             if (localStorage.getItem('justLoggedIn') === 'true') {
                 updateAuthButton({ exists: true }); // ダミーユーザーオブジェクト
             }
+            displayRecentNovels(); // 新着小説を表示
         };
+
+        // 投稿ボタンのクリックイベント
+        document.getElementById('postButton').addEventListener('click', function() {
+            window.location.href = './kadai_submit.html'; // 投稿ページへ遷移
+        });
     </script>
 </body>
 </html>

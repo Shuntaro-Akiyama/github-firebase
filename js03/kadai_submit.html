@@ -4,10 +4,22 @@
     <meta charset="UTF-8">
     <title>小説投稿フォーム</title>
     <style>
-        /* フォームのスタイルを設定 */
-        form {
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
             max-width: 600px;
             margin: 0 auto;
+            position: relative;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        form {
             padding: 20px;
             border: 1px solid #ccc;
             border-radius: 5px;
@@ -19,6 +31,7 @@
             margin-bottom: 10px;
             border: 1px solid #ccc;
             border-radius: 5px;
+            box-sizing: border-box;
         }
         button {
             padding: 10px 20px;
@@ -31,28 +44,47 @@
         button:hover {
             background-color: #45a049;
         }
+        .back-to-top {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background-color: #333;
+            color: white;
+            padding: 10px 15px;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+        .back-to-top:hover {
+            background-color: #555;
+        }
     </style>
+    <!-- Firebase App (コアライブラリ) の読み込み -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+    <!-- Firebase Authentication の読み込み -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+    <!-- Firebase Firestore の読み込み -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
 </head>
 <body>
-    <h1>小説投稿フォーム</h1>
-    <form id="novelForm">
-        <label for="novelTitle">タイトル</label>
-        <input type="text" id="novelTitle" name="novelTitle" placeholder="タイトルを入力してください" required>
-        
-        <label for="authorName">作者名</label>
-        <input type="text" id="authorName" name="authorName" placeholder="作者名を入力してください" required>
-        
-        <label for="novelContent">本文</label>
-        <textarea id="novelContent" name="novelContent" rows="10" placeholder="本文を入力してください" required></textarea>
-        
-        <button type="button" onclick="submitNovel()">投稿</button>
-    </form>
+    <a href="./kadai_top.html" class="back-to-top">ホーム</a>
+    <div class="container">
+        <h1>小説投稿フォーム</h1>
+        <form id="novelForm">
+            <label for="novelTitle">タイトル</label>
+            <input type="text" id="novelTitle" name="novelTitle" placeholder="タイトルを入力してください" required>
+            
+            <label for="authorName">作者名</label>
+            <input type="text" id="authorName" name="authorName" placeholder="作者名を入力してください" required>
+            
+            <label for="novelContent">本文</label>
+            <textarea id="novelContent" name="novelContent" rows="10" placeholder="本文を入力してください" required></textarea>
+            
+            <button type="button" onclick="submitNovel()">投稿</button>
+        </form>
+    </div>
 
-    <script type="module">
-        // Firebaseの設定と初期化（Firebase SDKのインポートが必要）
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
-
+    <script>
+        // Firebaseの設定
         const firebaseConfig = {
             apiKey: "AIzaSyCy04YFxCGxj47Gx359g2k5xzrlyKjOKzs",
             authDomain: "kadai-f10fd.firebaseapp.com",
@@ -62,26 +94,48 @@
             appId: "1:662321462953:web:427d01e97d54fac3c1f3b8"
         };
 
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+        // Firebaseの初期化
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
 
-        // 小説を投稿する関数
-        window.submitNovel = async function() {
-            const title = document.getElementById('novelTitle').value;
-            const author = document.getElementById('authorName').value;
-            const content = document.getElementById('novelContent').value;
-            try {
-                const docRef = await addDoc(collection(db, "novels"), {
-                    title: title,
-                    author: author,
-                    content: content,
-                    createdAt: new Date()
-                });
-                alert('小説が投稿されました: ' + docRef.id);
-            } catch (e) {
-                alert('エラーが発生しました: ' + e);
+        // ユーザーの表示名を取得し、作者名フィールドに設定
+        firebase.auth().onAuthStateChanged(function(user) {
+            if (user) {
+                document.getElementById('authorName').value = user.displayName || '';
+            } else {
+                // ユーザーがログインしていない場合はログインページにリダイレクト
+                window.location.href = './kadai_authentication.html';
             }
-        }
+        });
+
+// 小説を投稿する関数
+window.submitNovel = function() {
+    const title = document.getElementById('novelTitle').value.trim();
+    const author = document.getElementById('authorName').value.trim();
+    const content = document.getElementById('novelContent').value.trim();
+
+    // 入力チェック
+    if (!title || !author || !content) {
+        alert('タイトル、作者名、本文のいずれも入力必須です。');
+        return;
+    }
+
+    // Firestoreに小説を追加
+    db.collection("novels").add({
+        title: title,
+        author: author,
+        content: content,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    })
+    .then((docRef) => {
+        alert('小説が投稿されました');
+        // トップページにリダイレクト
+        window.location.href = './kadai_top.html';
+    })
+    .catch((error) => {
+        alert('エラーが発生しました: ' + error);
+    });
+}
     </script>
 </body>
 </html>
