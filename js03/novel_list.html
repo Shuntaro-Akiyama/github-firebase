@@ -30,9 +30,28 @@
             font-style: italic;
             color: #666;
         }
+        .novel-date {
+            font-size: 0.9em;
+            color: #888;
+        }
+        .back-to-top {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background-color: #333;
+            color: white;
+            padding: 10px 15px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        .back-to-top:hover {
+            background-color: #555;
+        }
     </style>
 </head>
 <body>
+    <a href="./kadai_top.html" class="back-to-top">ホーム</a>
     <div class="novel-list">
         <h1>小説一覧</h1>
         <div id="novels"></div>
@@ -59,21 +78,29 @@
 
         // 小説一覧を取得して表示
         function displayNovels() {
-            db.collection("novels").get().then((querySnapshot) => {
-                const novelsDiv = document.getElementById('novels');
-                querySnapshot.forEach((doc) => {
-                    const novel = doc.data();
-                    const novelElement = document.createElement('div');
-                    novelElement.className = 'novel-item';
-                    novelElement.innerHTML = `
-                        <div class="novel-title">
-                            <a href="novel_detail.html?id=${doc.id}">${novel.title}</a>
-                        </div>
-                        <div class="novel-author">作者: ${novel.author || '匿名'}</div>
-                    `;
-                    novelsDiv.appendChild(novelElement);
+            db.collection("novels")
+                .orderBy("createdAt", "desc") // createdAtフィールドで降順にソート
+                .get()
+                .then((querySnapshot) => {
+                    const novelsDiv = document.getElementById('novels');
+                    novelsDiv.innerHTML = ''; // 既存の内容をクリア
+                    querySnapshot.forEach((doc) => {
+                        const novel = doc.data();
+                        const novelElement = document.createElement('div');
+                        novelElement.className = 'novel-item';
+                        novelElement.innerHTML = `
+                            <div class="novel-title">
+                                <a href="novel_detail.html?id=${doc.id}">${novel.title}</a>
+                            </div>
+                            <div class="novel-author">作者: ${novel.author || '匿名'}</div>
+                            <div class="novel-date">投稿日: ${novel.createdAt.toDate().toLocaleString()}</div>
+                        `;
+                        novelsDiv.appendChild(novelElement);
+                    });
+                })
+                .catch((error) => {
+                    console.error("Error getting documents: ", error);
                 });
-            });
         }
 
         // ページ読み込み時に小説一覧を表示

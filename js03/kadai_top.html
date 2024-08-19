@@ -69,6 +69,18 @@
         .post-button:hover {
             background-color: #45a049;
         }
+                /* 新しいスタイルを追加 */
+        .section-footer {
+            text-align: right;
+            margin-top: 10px;
+        }
+        .more-link {
+            color: #0066cc;
+            text-decoration: none;
+        }
+        .more-link:hover {
+            text-decoration: underline;
+        }
     </style>
     <!-- Firebase App (コアライブラリ) の読み込み -->
     <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
@@ -98,6 +110,9 @@
             <ul id="recentNovels">
                 <!-- ここに新着小説が動的に追加されます -->
             </ul>
+            <div class="section-footer">
+                <a href="./novel_list.html" class="more-link">もっと見る</a>
+            </div>
         </section>
         <section>
             <h2>お知らせ</h2>
